@@ -6,6 +6,7 @@ const avgSpeedOutput = must(document.querySelector("#avg-speed"));
 const instantSpeedOutput = must(document.querySelector("#instant-speed"));
 const log = must(document.querySelector("#log"));
 
+let bytesToRequest = 1000;
 let avg = new RollingAverage(10);
 const graph = new RollingGraph("#graph");
 const start = new Date().getTime();
@@ -26,8 +27,8 @@ function processDownload(numBytes: number, durationMs: number) {
   graph.add(new Date().getTime() - start, speed);
 }
 
-async function download() {
-  const resp = await fetch("/api/test?size=10000000");
+async function download(numBytes: number) {
+  const resp = await fetch(`/api/test?size=${numBytes}`);
   if (!resp.ok) {
     throw new Error("response was not OK");
   }
@@ -37,13 +38,30 @@ async function download() {
   };
 }
 
+function timed(name: string, fn: () => void) {
+  const start = new Date().getTime();
+  fn();
+  const duration = new Date().getTime() - start;
+  console.log(`${name}: ${duration} ms`)
+}
+
 function startTest() {
   const f = async () => {
+    let delay = 500;
+    const upperBound = delay + Math.max(200, delay * 0.3);
+    const lowerBound = delay - Math.max(200, delay * 0.3);
     try {
       const start = new Date().getTime();
-      const { numBytes } = await download();
+      const { numBytes } = await download(bytesToRequest);
       const end = new Date().getTime();
-      processDownload(numBytes, end - start);
+      const duration = end - start;
+      if (duration > upperBound) {
+        bytesToRequest *= 0.1;
+      } else if (duration < lowerBound) {
+        bytesToRequest *= 10;
+      }
+      timed("processDownload", () => processDownload(numBytes, duration));
+      delay = Math.max(0, delay - duration);
     } catch (err) {
       log.innerHTML = err + "<br/>" + JSON.stringify(err);
     }
