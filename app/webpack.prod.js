@@ -10,7 +10,7 @@ const htmlPlugin = new HtmlWebPackPlugin({
 
 module.exports = {
   mode: "production",
-  entry: "./src/index.tsx",
+  entry: "./src/main.ts",
   output: {
     path: path.resolve(__dirname, "../dist/app"),
     filename: "bundle.js",

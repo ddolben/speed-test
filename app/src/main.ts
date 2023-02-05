@@ -1,12 +1,11 @@
 import { RollingGraph } from "./rolling-graph";
 import { RollingAverage, formatBytes, formatSpeed, must } from "./util";
 
-const button = must(document.querySelector("#button")) as HTMLButtonElement;
+const startButton = must(document.querySelector("#button")) as HTMLButtonElement;
 const avgSpeedOutput = must(document.querySelector("#avg-speed"));
 const instantSpeedOutput = must(document.querySelector("#instant-speed"));
 const log = must(document.querySelector("#log"));
 
-let bytesToRequest = 1000;
 let avg = new RollingAverage(10);
 const graph = new RollingGraph("#graph");
 const start = new Date().getTime();
@@ -38,6 +37,8 @@ async function download(numBytes: number) {
   };
 }
 
+const bytesToRequestBase = 2;
+let bytesToRequestPower = 10;
 function timed(name: string, fn: () => void) {
   const start = new Date().getTime();
   fn();
@@ -52,29 +53,29 @@ function startTest() {
     const lowerBound = delay - Math.max(200, delay * 0.3);
     try {
       const start = new Date().getTime();
-      const { numBytes } = await download(bytesToRequest);
+      const { numBytes } = await download(Math.pow(bytesToRequestBase, bytesToRequestPower));
       const end = new Date().getTime();
       const duration = end - start;
       if (duration > upperBound) {
-        bytesToRequest *= 0.1;
+        bytesToRequestPower = Math.max(1, bytesToRequestPower - 1);
       } else if (duration < lowerBound) {
-        bytesToRequest *= 10;
+        bytesToRequestPower = Math.min(30, bytesToRequestPower + 1);
       }
       timed("processDownload", () => processDownload(numBytes, duration));
       delay = Math.max(0, delay - duration);
     } catch (err) {
       log.innerHTML = err + "<br/>" + JSON.stringify(err);
     }
-    setTimeout(f, 1000);
+    setTimeout(f, 10);
   };
 
   f();
 }
 
 function main() {
-  button.onclick = () => {
+  startButton.onclick = () => {
     startTest();
-    button.disabled = true;
+    startButton.disabled = true;
   };
 
   graph.render();

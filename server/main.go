@@ -14,12 +14,30 @@ func serveTest(w http.ResponseWriter, r *http.Request) {
   fmt.Fprintf(w, "{}")
 }
 
-func generateRandomData(n int) string {
-  kAlphabet := []rune("abcdefghijklmnopqrstuvwxyz0123456789")
+var chunk1K []rune
+var kAlphabet = []rune("abcdefghijklmnopqrstuvwxyz0123456789")
 
+func generateExplicitRandomData(n int) string {
   b := make([]rune, n)
   for i := range b {
       b[i] = kAlphabet[rand.Intn(len(kAlphabet))]
+  }
+  return string(b)
+}
+
+func generateRandomData(n int) string {
+  if chunk1K == nil {
+    chunk1K = []rune(generateExplicitRandomData(1000))
+  }
+
+  b := make([]rune, n)
+  i := 0
+  for i+1000 < n {
+    copy(b[i:i+1000], chunk1K)
+    i += 1000
+  }
+  if i < n {
+    copy(b[i:n], []rune(generateExplicitRandomData(n-i)))
   }
   return string(b)
 }
@@ -34,8 +52,13 @@ func main() {
 
   dataCache = make(map[int]string)
   rand.Seed(time.Now().UnixNano())
-  //data := generateRandomData(1000000);
-  //data := "hello world"
+
+  // Seed cache with values on the 10s
+  //log.Printf("seeding test data")
+  //for _, n := range []int{1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9} {
+  //  log.Printf("seeding %d bytes", n)
+  //  dataCache[n] = generateRandomData(n)
+  //}
 
   http.HandleFunc("/api/test", func (w http.ResponseWriter, r *http.Request) {
     //log.Printf("serving test data")
@@ -52,6 +75,7 @@ func main() {
     if v, ok := dataCache[numBytes]; ok {
       data = v
     } else {
+      log.Printf("seeding %d bytes", numBytes)
       data = generateRandomData(numBytes)
       dataCache[numBytes] = data
     }
