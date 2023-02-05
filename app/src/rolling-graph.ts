@@ -11,7 +11,8 @@ export class RollingGraph {
   private data: [number, number][] = [];
   constructor(
     private containerId: string,
-    private maxCount: number = 100,
+    private maxTime: number,
+    private maxCount: number,
   ) {}
 
   render() {
@@ -69,7 +70,10 @@ export class RollingGraph {
 
   add(x: number, y: number) {
     this.data.push([x, y])
-    if (this.data.length > this.maxCount) {
+    while (this.data.length > this.maxCount) {
+      this.data.shift();
+    }
+    while (this.data[this.data.length - 1][0] - this.data[0][0] > this.maxTime) {
       this.data.shift();
     }
     this.render();
