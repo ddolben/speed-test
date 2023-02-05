@@ -18,8 +18,8 @@ export class RollingGraph {
   render() {
     // set the dimensions and margins of the graph
     var margin = {top: 20, right: 20, bottom: 30, left: 50},
-        width = 960 - margin.left - margin.right,
-        height = 500 - margin.top - margin.bottom;
+        width = Math.min(960, window.innerWidth) - margin.left - margin.right,
+        height = Math.min(500, window.innerHeight) - margin.top - margin.bottom;
 
     // set the ranges
     var x = d3.scaleTime().range([0, width]);

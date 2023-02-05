@@ -109,7 +109,8 @@ function startStreamingTest() {
     const lowerBound = delay - Math.max(200, delay * 0.3);
     try {
       const start = new Date().getTime();
-      await streamingDownload(Math.pow(bytesToRequestBase, bytesToRequestPower), (bytes, totalBytes) => {
+      //await streamingDownload(Math.pow(bytesToRequestBase, bytesToRequestPower), (bytes, totalBytes) => {
+      await streamingDownload(25_000_000, (bytes, totalBytes) => {
         const duration = new Date().getTime() - start;
         timed("processDownload", () => processDownload(bytes, duration));
       });
