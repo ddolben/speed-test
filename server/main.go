@@ -39,7 +39,7 @@ func main() {
 
   http.HandleFunc("/api/test", func (w http.ResponseWriter, r *http.Request) {
     //log.Printf("serving test data")
-    numBytes := 1000000
+    numBytes := 1000
     sizeStr := r.URL.Query().Get("size")
     if len(sizeStr) > 0 {
       var err error

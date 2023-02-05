@@ -1,53 +1,23 @@
-(function() {
+import { RollingAverage, formatBytes, formatSpeed } from "./util.js";
 
-class RollingAverage {
-  constructor(num) {
-    this.values = [];
-    this.max = num;
-    this.ptr = 0;
+function must<TData>(v: TData | null | undefined): TData {
+  if (v === undefined) {
+    throw new Error("must was undefined");
   }
-
-  add(val) {
-    if (this.values.length < this.max) {
-      this.values.push(val);
-    } else {
-      this.values[this.ptr] = val;
-      this.ptr = (this.ptr + 1) % this.max;
-    }
-    return this.avg();
+  if (v === null) {
+    throw new Error("must was undefined");
   }
-
-  avg() {
-    let acc = this.values[0];
-    for (let i = 1; i < this.values.length; i++) {
-      acc += this.values[i];
-    }
-    return acc / this.values.length;
-  }
+  return v;
 }
 
-function formatBytes(n) {
-  if (n) {
-    return `${n * 0.000001} MB`;
-  }
-  if (n > 1000) {
-    return `${n * 0.001} KB`;
-  }
-  return `${n} B`;
-}
-
-function formatSpeed(n) {
-  return `${formatBytes(n)}/s`;
-}
-
-const button = document.querySelector("#button");
-const avgSpeedOutput = document.querySelector("#avg-speed");
-const instantSpeedOutput = document.querySelector("#instant-speed");
-const log = document.querySelector("#log");
+const button = must(document.querySelector("#button")) as HTMLButtonElement;
+const avgSpeedOutput = must(document.querySelector("#avg-speed"));
+const instantSpeedOutput = must(document.querySelector("#instant-speed"));
+const log = must(document.querySelector("#log"));
 
 let avg = new RollingAverage(10);
 
-function processDownload(numBytes, durationMs) {
+function processDownload(numBytes: number, durationMs: number) {
   const speed = 1000 * numBytes / durationMs;
   const bytesStr = formatBytes(numBytes);
   const avgSpeed = avg.add(speed);
@@ -80,7 +50,7 @@ function startTest() {
       const end = new Date().getTime();
       processDownload(numBytes, end - start);
     } catch (err) {
-      log.innerHTML(err.toString() + "<br/>" + JSON.stringify(err));
+      log.innerHTML = err + "<br/>" + JSON.stringify(err);
     }
     setTimeout(f, 1000);
   };
@@ -92,5 +62,3 @@ button.onclick = () => {
   startTest();
   button.disabled = true;
 };
-
-})();
