@@ -38,3 +38,12 @@ export function formatSpeed(n: number) {
   return `${formatBytes(n)}/s`;
 }
 
+export function must<TData>(v: TData | null | undefined): TData {
+  if (v === undefined) {
+    throw new Error("must was undefined");
+  }
+  if (v === null) {
+    throw new Error("must was undefined");
+  }
+  return v;
+}

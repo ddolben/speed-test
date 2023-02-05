@@ -1,14 +1,5 @@
-import { RollingAverage, formatBytes, formatSpeed } from "./util.js";
-
-function must<TData>(v: TData | null | undefined): TData {
-  if (v === undefined) {
-    throw new Error("must was undefined");
-  }
-  if (v === null) {
-    throw new Error("must was undefined");
-  }
-  return v;
-}
+import { RollingGraph } from "./rolling-graph";
+import { RollingAverage, formatBytes, formatSpeed, must } from "./util";
 
 const button = must(document.querySelector("#button")) as HTMLButtonElement;
 const avgSpeedOutput = must(document.querySelector("#avg-speed"));
@@ -16,6 +7,8 @@ const instantSpeedOutput = must(document.querySelector("#instant-speed"));
 const log = must(document.querySelector("#log"));
 
 let avg = new RollingAverage(10);
+const graph = new RollingGraph("#graph");
+const start = new Date().getTime();
 
 function processDownload(numBytes: number, durationMs: number) {
   const speed = 1000 * numBytes / durationMs;
@@ -29,6 +22,8 @@ function processDownload(numBytes: number, durationMs: number) {
   avgSpeedOutput.innerHTML = avgString;
   instantSpeedOutput.innerHTML = instString;
   log.innerHTML = `${bytesStr} in ${durationMs} ms`;
+
+  graph.add(new Date().getTime() - start, speed);
 }
 
 async function download() {
@@ -58,7 +53,13 @@ function startTest() {
   f();
 }
 
-button.onclick = () => {
-  startTest();
-  button.disabled = true;
-};
+function main() {
+  button.onclick = () => {
+    startTest();
+    button.disabled = true;
+  };
+
+  graph.render();
+}
+
+main();
